@@ -1,4 +1,4 @@
-# VAN Stiker Sound — V4.4 — Branding + Mobile Square Editor
+# VAN Stiker Sound — V4.6 — Van Installer
 
 Aplikasi Android eksperimen, bukan aplikasi resmi WhatsApp/Meta. Untuk penggunaan pribadi/nonkomersial. Tidak ada backend aplikasi. Editor memakai engine WA-audio-stickers upstream yang diambil pada tahap build; tidak mengunduh executable JavaScript saat APK dijalankan.
 
@@ -6,7 +6,7 @@ Aplikasi Android eksperimen, bukan aplikasi resmi WhatsApp/Meta. Untuk penggunaa
 1. Ekstrak arsip project.
 2. Buat repository GitHub **private**. Upload semua isi folder project termasuk `.github/workflows/build-apk.yml` (jangan upload folder pembungkusnya sebagai subfolder). Jika upload web menyembunyikan folder titik, buat file workflow tersebut melalui menu Add file > Create new file dengan path `.github/workflows/build-apk.yml` dan salin isinya.
 3. Buka Actions > Build Android APK > Run workflow. Workflow juga berjalan ketika push ke main. Pastikan Actions diaktifkan.
-4. Setelah build sukses, buka run tersebut, download artifact `SoundStickerMaker-debug` dan ekstrak `app-debug.apk`.
+4. Setelah build sukses, buka run tersebut, download artifact `Van Installer` dan ekstrak `Van Installer.apk`.
 5. Install APK pada Android uji, izinkan instalasi dari sumber tersebut bila diperlukan. Perbarui Android System WebView/Chrome terlebih dahulu.
 
 ## Build lokal
@@ -51,3 +51,17 @@ Output kotak hingga 512 px; engine dapat menurunkan resolusi/FPS sesuai batas uk
 - Nama launcher dan judul aplikasi: VAN Stiker Sound. Ikon memakai gambar Pikachu yang diberikan pengguna, dipotong persegi tanpa perubahan gaya.
 - Application ID, workflow, engine, dan pengaturan video V4.3 tidak diubah. Version code 8.
 - Ikon dan XML diverifikasi; build APK belum dijalankan.
+
+## V4.5 — Tanpa konversi otomatis video sumber
+- File asli yang dipilih langsung diteruskan ke WebView tanpa Media3, tanpa transcode MP4, tanpa resize 720p, dan tanpa target ukuran sumber.
+- Pemrosesan WebP/audio saat membuat stiker masih diperlukan. Batas asli engine/WhatsApp tetap berlaku.
+- Video dengan codec yang tidak didukung WebView dapat kembali menghasilkan error code 4. Gunakan sumber yang kompatibel (misalnya MP4 H.264/AAC).
+- Nama, ikon, package ID, editor, patch engine dan workflow V4.4 tetap. Version code 9.
+- Upload minimal MainActivity.java, app/build.gradle, dan AndroidManifest.xml bersama-sama. XML normalized_paths lama tidak digunakan dan boleh dihapus.
+- Sintaks JS/Python dan XML diperiksa; APK belum dikompilasi atau diuji di perangkat.
+
+## V4.6 — Van Installer
+- Artifact GitHub bernama `Van Installer`; file di dalamnya `Van Installer.apk`.
+- Ikon launcher Pikachu dan nama aplikasi VAN Stiker Sound tetap digunakan. Android menentukan tampilan ikon pada file manager dan layar instalasi.
+- APK tetap build debug yang ditandatangani untuk pengujian; perubahan nama file tidak mengubah tipe build atau signature.
+- Tidak ada perubahan pada konversi video, editor atau engine dari V4.5. Version code 10.

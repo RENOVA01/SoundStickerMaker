@@ -2,22 +2,6 @@ package id.soundstickermaker;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.database.Cursor;
-import android.provider.OpenableColumns;
-import androidx.core.content.FileProvider;
-import androidx.media3.common.MediaItem;
-import androidx.media3.common.MimeTypes;
-import androidx.media3.common.util.UnstableApi;
-import androidx.media3.effect.Presentation;
-import androidx.media3.transformer.Composition;
-import androidx.media3.transformer.EditedMediaItem;
-import androidx.media3.transformer.Effects;
-import androidx.media3.transformer.ExportException;
-import androidx.media3.transformer.ExportResult;
-import androidx.media3.transformer.Transformer;
-import java.util.Collections;
-import java.util.Locale;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Color;
@@ -35,7 +19,6 @@ import android.widget.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
-@UnstableApi
 public class MainActivity extends Activity {
     private static final String HOME = "https://web.whatsapp.com/";
     private static final int PICK_FILE = 41;
@@ -46,13 +29,6 @@ public class MainActivity extends Activity {
     private boolean desktopMode = false;
     private ProgressBar progress;
     private ValueCallback<Uri[]> chooser;
-    private boolean normalizePicker;
-    private Transformer transformer;
-    private ProgressDialog normalizeDialog;
-    private File normalizedFile;
-    private Uri originalVideo;
-    private ValueCallback<Uri[]> convertingCallback;
-    private int conversionId;
     private String engine;
     private String mobileUI;
     private int pageToken = 0;
@@ -61,7 +37,6 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         buildUI();
-        pruneOldVideos();
         try { engine = loadEngine(); mobileUI = readPath("editor/mobile.js"); }
         catch (IOException e) { status.setText("Engine tidak dapat dimuat: " + e.getMessage()); return; }
         configureWeb();
@@ -165,7 +140,6 @@ public class MainActivity extends Activity {
                 return r.isForMainFrame() && !trusted(r.getUrl().toString());
             }
             @Override public void onPageStarted(WebView v, String url, android.graphics.Bitmap icon) {
-                if(convertingCallback!=null) cancelNormalization();
                 pageToken++; engineReady=false; setEditorEnabled(false); showStatus("Memuat halaman…");
             }
             @Override public void onPageFinished(WebView v,String url) {
@@ -186,17 +160,9 @@ public class MainActivity extends Activity {
             @Override public boolean onShowFileChooser(WebView v,ValueCallback<Uri[]> cb,FileChooserParams params) {
                 if (!trusted(v.getUrl())) return false;
                 if (chooser!=null) chooser.onReceiveValue(null);
-                cancelNormalization();
                 chooser=cb;
-                normalizePicker=false;
-                // The sticker editor lives in a shadow DOM. Leave ordinary WA attachments alone.
-                String accept = String.join(",", params.getAcceptTypes()).toLowerCase(Locale.ROOT);
-                final boolean stickerAccept = accept.contains(".mov") && (accept.contains(".mkv") || accept.contains(".opus"));
-                v.evaluateJavascript("(function(){const o=document.getElementById('waas-root')?.shadowRoot?.querySelector('.overlay');return !!(o && o.getClientRects().length && getComputedStyle(o).display!=='none');})()", r -> {
-                    if (chooser!=cb || !trusted(web.getUrl())) return;
-                    normalizePicker=stickerAccept || "true".equals(r);
-                    launchPicker(params);
-                });
+                // Pass the original selected content URI to WebView without transcoding.
+                launchPicker(params);
                 return true;
             }
             @Override public void onPermissionRequest(PermissionRequest request) { request.deny(); }
@@ -211,92 +177,6 @@ public class MainActivity extends Activity {
                 i.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/*","video/*","audio/*"}); startActivityForResult(i,PICK_FILE);
             } catch (ActivityNotFoundException ex) { if (chooser!=null) chooser.onReceiveValue(null); chooser=null; }
         }
-    }
-    private boolean isVideo(Uri uri) {
-        String type = getContentResolver().getType(uri);
-        if (type!=null && type.toLowerCase(Locale.ROOT).startsWith("video/")) return true;
-        String name=uri.toString();
-        try (Cursor c=getContentResolver().query(uri,new String[]{OpenableColumns.DISPLAY_NAME},null,null,null)) {
-            if(c!=null && c.moveToFirst() && !c.isNull(0)) name=c.getString(0);
-        } catch (Exception ignored) { }
-        return name.toLowerCase(Locale.ROOT).matches(".*\\.(mp4|mov|m4v|mkv|webm|avi|3gp|3g2|mpeg|mpg|ts|hevc|mts|m2ts)$");
-    }
-    private File videoDir() { return new File(getCacheDir(), "normalized_videos"); }
-    private void pruneOldVideos() {
-        File[] files=videoDir().listFiles();
-        if(files!=null) for(File f:files) if(f.isFile() && f.lastModified()<System.currentTimeMillis()-48L*60*60*1000) f.delete();
-    }
-    private void dismissNormalizeDialog() {
-        if(normalizeDialog!=null) { normalizeDialog.dismiss(); normalizeDialog=null; }
-    }
-    private void cancelNormalization() {
-        conversionId++;
-        if(transformer!=null) { transformer.cancel(); transformer=null; }
-        dismissNormalizeDialog();
-        if(normalizedFile!=null) { normalizedFile.delete(); normalizedFile=null; }
-        originalVideo=null;
-        ValueCallback<Uri[]> cb=convertingCallback; convertingCallback=null;
-        if(cb!=null) cb.onReceiveValue(null);
-    }
-    private void completeNormalization(int id, boolean success, String detail) {
-        if(id!=conversionId || convertingCallback==null) return;
-        transformer=null;
-        dismissNormalizeDialog();
-        ValueCallback<Uri[]> cb=convertingCallback;
-        File output=normalizedFile;
-        Uri original=originalVideo;
-        convertingCallback=null; normalizedFile=null; originalVideo=null;
-        if(!trusted(web.getUrl()) || isFinishing() || isDestroyed()) {
-            if(output!=null) output.delete(); cb.onReceiveValue(null); return;
-        }
-        if(success && output!=null && output.isFile() && output.length()>0) {
-            try {
-                Uri ready=FileProvider.getUriForFile(this,getPackageName()+".normalizedmedia",output);
-                Toast.makeText(this,"Video MP4 kompatibel siap diedit",Toast.LENGTH_SHORT).show();
-                cb.onReceiveValue(new Uri[]{ready}); return;
-            } catch (RuntimeException e) { detail=e.getMessage(); }
-        }
-        if(output!=null) output.delete();
-        // Never silently feed an unsupported input back to the browser.
-        new AlertDialog.Builder(this).setTitle("Video tidak dapat dikonversi")
-            .setMessage("Decoder/encoder Android tidak dapat memproses video ini. Coba video MP4 H.264 + AAC lain, atau ekspor ulang dari editor video.\n\n" + (detail==null?"Format tidak didukung":detail))
-            .setPositiveButton("Pilih ulang",(d,w)->cb.onReceiveValue(null))
-            .setNegativeButton("Coba file asli",(d,w)->cb.onReceiveValue(trusted(web.getUrl())?new Uri[]{original}:null))
-            .setOnCancelListener(d->cb.onReceiveValue(null)).show();
-    }
-    private void normalizeVideo(Uri uri, ValueCallback<Uri[]> cb) {
-        cancelNormalization();
-        convertingCallback=cb; originalVideo=uri;
-        final int id=conversionId;
-        try {
-            File folder=videoDir();
-            if(!folder.exists() && !folder.mkdirs()) throw new IOException("Folder cache tidak tersedia");
-            normalizedFile=File.createTempFile("sticker_video_", ".mp4",folder);
-            if(!normalizedFile.delete()) throw new IOException("Tidak dapat menyiapkan file output");
-            normalizeDialog=new ProgressDialog(this);
-            normalizeDialog.setTitle("Menyiapkan video");
-            normalizeDialog.setMessage("Mengonversi ke MP4 H.264 + AAC…");
-            normalizeDialog.setIndeterminate(true);
-            normalizeDialog.setCancelable(false);
-            normalizeDialog.setButton(ProgressDialog.BUTTON_NEGATIVE,"Batal",(d,w)->cancelNormalization());
-            normalizeDialog.show();
-            // Keep source aspect ratio and audio. Cropping and text happen later in the sticker editor.
-            EditedMediaItem item=new EditedMediaItem.Builder(MediaItem.fromUri(uri))
-                .setEffects(new Effects(Collections.emptyList(),Collections.singletonList(Presentation.createForHeight(720))))
-                .build();
-            transformer=new Transformer.Builder(this)
-                .setVideoMimeType(MimeTypes.VIDEO_H264)
-                .setAudioMimeType(MimeTypes.AUDIO_AAC)
-                .addListener(new Transformer.Listener() {
-                    @Override public void onCompleted(Composition composition, ExportResult result) {
-                        completeNormalization(id,true,null);
-                    }
-                    @Override public void onError(Composition composition, ExportResult result, ExportException error) {
-                        completeNormalization(id,false,error.getMessage());
-                    }
-                }).build();
-            transformer.start(item,normalizedFile.getAbsolutePath());
-        } catch (Exception e) { completeNormalization(id,false,e.getMessage()); }
     }
     private void applyMobileUI() {
         if (mobileUI == null || !trusted(web.getUrl())) return;
@@ -344,7 +224,7 @@ public class MainActivity extends Activity {
         web.evaluateJavascript("(function(){if(location.origin!=='https://web.whatsapp.com')return;window.WAAS.togglePanel();if(window.__ssmUI)window.__ssmUI.refresh();})()",null);
     }
     private void showInfo() {
-        new AlertDialog.Builder(this).setTitle(getString(R.string.app_name) + " — V4.4")
+        new AlertDialog.Builder(this).setTitle(getString(R.string.app_name) + " — V4.5")
             .setMessage("Prototipe nonresmi, untuk penggunaan pribadi/nonkomersial.\n\nTautkan akun melalui WhatsApp Web. Pilih video dengan audio, gambar + audio, atau GIF + audio. Editor diproses oleh engine WA-audio-stickers (Shirtep; fork vish-4-1, PolyForm Noncommercial).\n\nPengiriman tergantung kompatibilitas WhatsApp Web dan WebView. Jangan gunakan akun penting untuk uji coba. Tidak ada server aplikasi atau penyimpanan password.\n\nLisensi upstream disertakan di APK (assets/engine/LICENSE.md).")
             .setPositiveButton("OK",null).show();
     }
@@ -353,13 +233,7 @@ public class MainActivity extends Activity {
         if(req==PICK_FILE && chooser!=null) {
             ValueCallback<Uri[]> cb=chooser; chooser=null;
             Uri[] selected=WebChromeClient.FileChooserParams.parseResult(result,data);
-            boolean normalize=normalizePicker; normalizePicker=false;
-            if(normalize && selected!=null && selected.length==1 && trusted(web.getUrl())) {
-                boolean video=false;
-                try { video=isVideo(selected[0]); } catch (RuntimeException ignored) { }
-                if(video) { normalizeVideo(selected[0],cb); return; }
-            }
-            cb.onReceiveValue(selected);
+            cb.onReceiveValue(trusted(web.getUrl()) ? selected : null);
         }
     }
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); web.saveState(out); }
@@ -371,7 +245,6 @@ public class MainActivity extends Activity {
         });
     }
     @Override protected void onDestroy() {
-        cancelNormalization();
         pageToken++; if(chooser!=null) { chooser.onReceiveValue(null); chooser=null; }
         if(web!=null){ web.stopLoading(); if(web.getParent() instanceof ViewGroup) ((ViewGroup)web.getParent()).removeView(web); web.destroy(); }
         super.onDestroy();
