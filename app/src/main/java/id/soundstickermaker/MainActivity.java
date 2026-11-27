@@ -1,142 +1,79 @@
-package id.soundstickermaker;
+      const message = media.tagName === 'VIDEO' ? 'Geser atau zoom • preview mengikuti klip' : 'Geser atau zoom • preview gambar (GIF: frame awal)';
+      if(note.textContent !== message) note.textContent = message;
+    } else if(note.textContent !== 'Pilih media untuk melihat preview.') note.textContent = 'Pilih media untuk melihat preview.';
+    play.hidden = !media || media.tagName !== 'VIDEO';
+    const playText = media && media.tagName === 'VIDEO' && !media.paused ? 'Ⅱ Jeda preview' : '▶ Preview klip';
+    if (play.textContent !== playText) play.textContent = playText;
+  }
+  function change() {
+    zoomLabel.textContent = state.zoom.toFixed(2)+'×'; sizeLabel.textContent = String(state.fontSize);
+    paint(); onChange();
+  }
+  zoom.addEventListener('input',()=>{state.zoom=+zoom.value;change();});
+  size.addEventListener('input',()=>{state.fontSize=+size.value;change();});
+  top.addEventListener('input',()=>{state.top=top.value;change();});
+  bottom.addEventListener('input',()=>{state.bottom=bottom.value;change();});
+  reset.addEventListener('click',()=>{state.zoom=1;state.x=0;state.y=0;zoom.value='1';change();});
+  play.addEventListener('click',()=>{const m=source();if(m && typeof m.ssmToggleClip==='function')m.ssmToggleClip();});
+  let drag=null;
+  canvas.addEventListener('pointerdown',e=>{
+    if(G.busy || drag) return;
+    const m=source(); if(!m) return;
+    const r=canvas.getBoundingClientRect(), w=m.videoWidth||m.naturalWidth, height=m.videoHeight||m.naturalHeight;
+    const scale=(getMode()==='ajustar'?Math.min(r.width/w,r.height/height):Math.max(r.width/w,r.height/height))*state.zoom;
+    drag={id:e.pointerId,px:e.clientX,py:e.clientY,x:state.x,y:state.y,dx:Math.max(0,(w*scale-r.width)/2),dy:Math.max(0,(height*scale-r.height)/2)};
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove',e=>{
+    if(!drag || drag.id!==e.pointerId || G.busy) return;
+    if(drag.dx>0) state.x=clamp(drag.x+(e.clientX-drag.px)/drag.dx,-1,1);
+    if(drag.dy>0) state.y=clamp(drag.y+(e.clientY-drag.py)/drag.dy,-1,1);
+    change();
+  });
+  const end=e=>{if(drag && e.pointerId===drag.id)drag=null;};
+  canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);canvas.addEventListener('lostpointercapture',end);
+  let visible=false, raf=0,last=0;
+  function frame(t){raf=0;if(!visible)return;if(!G.busy && t-last>40){last=t;paint();}raf=requestAnimationFrame(frame);}
+  const observer=new IntersectionObserver(entries=>{visible=entries.some(x=>x.isIntersecting);if(visible && !raf)raf=requestAnimationFrame(frame);else if(!visible && raf){cancelAnimationFrame(raf);raf=0;}});
+  observer.observe(canvas);
+  return {el,config:cfg,refresh(){const locked=G.busy || !getParams();for(const input of [zoom,size,top,bottom,play,reset])input.disabled=locked; if(!G.busy && visible)paint();}};
+}
+        """;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.net.Uri;
-import android.os.Bundle;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.webkit.*;
-import android.widget.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-
-public class MainActivity extends Activity {
-    private static final String HOME = "https://web.whatsapp.com/";
-    private static final int PICK_FILE = 41;
-    private static final int DARK = 0xff10241f, GREEN = 0xff007d63;
-    private WebView web;
-    private TextView status;
-    private Button editor;
-    private ProgressBar progress;
-    private ValueCallback<Uri[]> chooser;
-    private String engine;
-    private int pageToken = 0;
-    private boolean engineReady = false;
-
-    @Override public void onCreate(Bundle state) {
-        super.onCreate(state);
-        buildUI();
-        try { engine = loadEngine(); }
-        catch (IOException e) { status.setText("Engine belum tersedia dalam APK."); return; }
-        configureWeb();
-        if (state == null || web.restoreState(state) == null) web.loadUrl(HOME);
+    private static String replaceChecked(String source, String oldText, String newText, int expected) throws IOException {
+        int count = 0, pos = 0;
+        while ((pos = source.indexOf(oldText, pos)) >= 0) { count++; pos += oldText.length(); }
+        if (count != expected) throw new IOException("Engine version mismatch (" + oldText.substring(0, Math.min(48, oldText.length())) + ")");
+        return source.replace(oldText, newText);
     }
-
-    private int dp(float n) { return Math.round(n * getResources().getDisplayMetrics().density); }
-    private TextView text(String value, int sp, int color, boolean bold) {
-        TextView t = new TextView(this); t.setText(value); t.setTextSize(sp); t.setTextColor(color);
-        if (bold) t.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        return t;
+    private String patchConverter(String js) throws IOException {
+        int a = js.indexOf("  function drawFrame(ctx, v, mode, side) {");
+        int b = js.indexOf("  async function probeVideo(file)", a);
+        if (a < 0 || b < 0 || b <= a) throw new IOException("Converter layout mismatch. Expected v0.7.2-en.");
+        return js.substring(0,a) + SQUARE_DRAW + "\n" + js.substring(b);
     }
-    private Button button(String label, Runnable action) {
-        Button b = new Button(this); b.setText(label); b.setAllCaps(false); b.setTextColor(Color.WHITE);
-        b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(GREEN));
-        b.setOnClickListener(v -> action.run()); return b;
-    }
-    private void buildUI() {
-        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(0xfff3f7f5);
-        LinearLayout header = new LinearLayout(this); header.setOrientation(LinearLayout.VERTICAL); header.setPadding(dp(16),dp(9),dp(16),dp(8)); header.setBackgroundColor(DARK);
-        header.addView(text("SOUND STICKER", 20, Color.WHITE, true));
-        header.addView(text("Maker  /  Experimental", 12, 0xffa6d6c8, false));
-        root.addView(header);
-        LinearLayout controls = new LinearLayout(this); controls.setGravity(Gravity.CENTER_VERTICAL); controls.setPadding(dp(8),dp(4),dp(8),dp(4));
-        editor = button("+ Buat stiker", this::openEditor); editor.setEnabled(false);
-        controls.addView(editor, new LinearLayout.LayoutParams(0,dp(50),1));
-        controls.addView(button("Muat ulang", () -> web.reload()));
-        controls.addView(button("Info", this::showInfo));
-        root.addView(controls);
-        status = text("Membuka WhatsApp Web…", 12, 0xff344c44, false); status.setPadding(dp(12),dp(4),dp(12),dp(7)); root.addView(status);
-        progress = new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal); progress.setMax(100); root.addView(progress,new LinearLayout.LayoutParams(-1,dp(3)));
-        web = new WebView(this); root.addView(web,new LinearLayout.LayoutParams(-1,0,1));
-        setContentView(root);
-    }
-
-    private boolean trusted(String url) {
-        if (url == null) return false;
-        Uri u = Uri.parse(url);
-        return "https".equalsIgnoreCase(u.getScheme()) && "web.whatsapp.com".equalsIgnoreCase(u.getHost()) && (u.getPort() == -1 || u.getPort() == 443);
-    }
-    private void configureWeb() {
-        WebSettings s = web.getSettings();
-        s.setJavaScriptEnabled(true); s.setDomStorageEnabled(true);
-        s.setAllowFileAccess(false); s.setAllowContentAccess(true);
-        s.setAllowFileAccessFromFileURLs(false); s.setAllowUniversalAccessFromFileURLs(false);
-        s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        s.setJavaScriptCanOpenWindowsAutomatically(false); s.setSupportMultipleWindows(false);
-        s.setMediaPlaybackRequiresUserGesture(true);
-        s.setUseWideViewPort(true); s.setLoadWithOverviewMode(true);
-        s.setSupportZoom(true); s.setBuiltInZoomControls(true); s.setDisplayZoomControls(false);
-        // Keep the actual installed Chromium version; request the desktop web client.
-        String ua = s.getUserAgentString();
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile("Chrome/[0-9.]+").matcher(ua);
-        if (m.find()) s.setUserAgentString("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) " + m.group() + " Safari/537.36");
-        CookieManager.getInstance().setAcceptCookie(true);
-        CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
-        WebView.setWebContentsDebuggingEnabled(false);
-        web.setWebViewClient(new WebViewClient() {
-            @Override public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
-                return r.isForMainFrame() && !trusted(r.getUrl().toString());
-            }
-            @Override public void onPageStarted(WebView v, String url, android.graphics.Bitmap icon) {
-                pageToken++; engineReady=false; editor.setEnabled(false); status.setText("Memuat halaman…");
-            }
-            @Override public void onPageFinished(WebView v,String url) {
-                if (!trusted(url)) return;
-                CookieManager.getInstance().flush();
-                injectEngine(pageToken);
-            }
-            @Override public void onReceivedError(WebView v,WebResourceRequest r,WebResourceError e) {
-                if (r.isForMainFrame()) { status.setText("Gagal membuka halaman. Coba muat ulang."); }
-            }
-            @Override public void onReceivedSslError(WebView v,SslErrorHandler h,android.net.http.SslError e) {
-                h.cancel(); status.setText("Koneksi tidak aman. Dibatalkan.");
-            }
-        });
-        web.setWebChromeClient(new WebChromeClient() {
-            @Override public void onProgressChanged(WebView v,int p) { progress.setProgress(p); progress.setVisibility(p==100?View.GONE:View.VISIBLE); }
-            @Override public boolean onShowFileChooser(WebView v,ValueCallback<Uri[]> cb,FileChooserParams params) {
-                if (!trusted(v.getUrl())) return false;
-                if (chooser!=null) chooser.onReceiveValue(null); chooser=cb;
-                try { startActivityForResult(params.createIntent(), PICK_FILE); }
-                catch (ActivityNotFoundException e) {
-                    try {
-                        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT); i.addCategory(Intent.CATEGORY_OPENABLE); i.setType("*/*");
-                        i.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/*","video/*","audio/*"}); startActivityForResult(i,PICK_FILE);
-                    } catch (ActivityNotFoundException ex) { chooser.onReceiveValue(null); chooser=null; }
-                }
-                return true;
-            }
-            @Override public void onPermissionRequest(PermissionRequest request) { request.deny(); }
-        });
-        web.setDownloadListener((url,ua1,content,mime,len) -> Toast.makeText(this,"Ekspor file belum didukung dalam versi ini.",Toast.LENGTH_SHORT).show());
-    }
-    private String readAsset(String name) throws IOException {
-        try (InputStream in = getAssets().open("engine/"+name); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            byte[] buf = new byte[8192]; int n; while ((n=in.read(buf))!=-1) out.write(buf,0,n);
-            return new String(out.toByteArray(), StandardCharsets.UTF_8);
-        }
+    private String patchEditor(String js) throws IOException {
+        String anchor = "    function makeFormat({ getParams, grid = true, sync = true, still = false, extras = [] }) {";
+        js = replaceChecked(js, anchor, SQUARE_CONTROLS + "\n" + anchor, 1);
+        js = replaceChecked(js, "const f = { mode: \"ajustar\", an: null, anKey: null, sel: null };", "const f = { mode: \"recortar\", an: null, anKey: null, sel: null }; const square = makeSquareControls(() => f.mode, () => api.onUpdate(), getParams);", 1);
+        js = replaceChecked(js, "...p, mode: f.mode, signal", "...p, mode: square.config(), signal", 2);
+        js = replaceChecked(js, "f.mode]);", "square.config()]);", 1);
+        js = replaceChecked(js, "if (grid) body.push(h(\"div\", { class: \"row\" }, calcBtn, calcInfo)", "body.push(square.el); if (grid) body.push(h(\"div\", { class: \"row\" }, calcBtn, calcInfo)", 1);
+        js = replaceChecked(js, "const has = !!getParams();", "square.refresh(); const has = !!getParams();", 1);
+        js = replaceChecked(js, "playSegBtn.addEventListener(\"click\", () => toggleRange(t.start, t.end));", "media.ssmToggleClip = () => toggleRange(t.start, t.end); playSegBtn.addEventListener(\"click\", media.ssmToggleClip);", 1);
+        js = replaceChecked(js, "sendBtn.disabled = G.busy || !c.result;", "sendBtn.disabled = G.busy || !c.result || stale;", 1);
+        js = replaceChecked(js, "textContent: \"Fit (transparent edges)\", class: \"on\"", "textContent: \"Fit (transparan)\"", 1);
+        js = replaceChecked(js, "textContent: \"Crop (fill frame)\"", "textContent: \"Crop (kotak penuh)\", class: \"on\"", 1);
+        return js;
     }
     private String loadEngine() throws IOException {
         StringBuilder b = new StringBuilder();
-        // The extension's bridge and service worker are deliberately not loaded.
-        // Its editor is opened directly from the native toolbar.
-        for (String name : new String[]{"logger.js","convert.js","wa.js","ui.js","main.js"}) b.append(readAsset(name)).append("\n;\n");
+        for (String name : new String[]{"logger.js","convert.js","wa.js","ui.js","main.js"}) {
+            String source = readAsset(name);
+            if ("convert.js".equals(name)) source = patchConverter(source);
+            if ("ui.js".equals(name)) source = patchEditor(source);
+            b.append(source).append("\n;\n");
+        }
         return b.toString();
     }
     private void injectEngine(int token) {
@@ -152,18 +89,18 @@ public class MainActivity extends Activity {
         web.evaluateJavascript("(function(){if(typeof window.WAAS?.togglePanel!=='function')return 'waiting';return typeof AudioEncoder==='undefined'?'no_audio_encoder':'ready';})()", result -> {
             if (token!=pageToken || !trusted(web.getUrl())) return;
             if ("\"ready\"".equals(result) || "\"no_audio_encoder\"".equals(result)) {
-                engineReady=true; editor.setEnabled(true);
-                status.setText("\"ready\"".equals(result)?"Tautkan akun, lalu pilih Buat stiker.":"AudioEncoder tidak tersedia. Konversi audio mungkin gagal.");
+                engineReady=true; setEditorEnabled(true); applyMobileUI();
+                showStatus("\"ready\"".equals(result)?"":"AudioEncoder tidak tersedia. Konversi audio mungkin gagal.");
             } else if(attempt<20) web.postDelayed(() -> checkReady(token,attempt+1),500);
-            else status.setText("Editor gagal dimuat. Coba muat ulang atau periksa versi WebView.");
+            else showStatus("Editor gagal dimuat. Coba muat ulang atau periksa versi WebView.");
         });
     }
     private void openEditor() {
         if (!engineReady || !trusted(web.getUrl())) return;
-        web.evaluateJavascript("(function(){if(location.origin!=='https://web.whatsapp.com')return;window.WAAS.togglePanel();})()",null);
+        web.evaluateJavascript("(function(){if(location.origin!=='https://web.whatsapp.com')return;window.WAAS.togglePanel();if(window.__ssmUI)window.__ssmUI.refresh();})()",null);
     }
     private void showInfo() {
-        new AlertDialog.Builder(this).setTitle("Sound Sticker Maker — 0.1")
+        new AlertDialog.Builder(this).setTitle("Sound Sticker Maker — Square Editor V3")
             .setMessage("Prototipe nonresmi, untuk penggunaan pribadi/nonkomersial.\n\nTautkan akun melalui WhatsApp Web. Pilih video dengan audio, gambar + audio, atau GIF + audio. Editor diproses oleh engine WA-audio-stickers (Shirtep; fork vish-4-1, PolyForm Noncommercial).\n\nPengiriman tergantung kompatibilitas WhatsApp Web dan WebView. Jangan gunakan akun penting untuk uji coba. Tidak ada server aplikasi atau penyimpanan password.\n\nLisensi upstream disertakan di APK (assets/engine/LICENSE.md).")
             .setPositiveButton("OK",null).show();
     }
@@ -173,7 +110,12 @@ public class MainActivity extends Activity {
     }
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); web.saveState(out); }
     @Override protected void onPause() { super.onPause(); CookieManager.getInstance().flush(); }
-    @Override public void onBackPressed() { if(web.canGoBack()) web.goBack(); else super.onBackPressed(); }
+    @Override public void onBackPressed() {
+        if (!trusted(web.getUrl())) { super.onBackPressed(); return; }
+        web.evaluateJavascript("window.__ssmUI ? window.__ssmUI.back() : false", result -> {
+            if (!"true".equals(result)) { if(web.canGoBack()) web.goBack(); else super.onBackPressed(); }
+        });
+    }
     @Override protected void onDestroy() {
         pageToken++; if(chooser!=null) { chooser.onReceiveValue(null); chooser=null; }
         if(web!=null){ web.stopLoading(); if(web.getParent() instanceof ViewGroup) ((ViewGroup)web.getParent()).removeView(web); web.destroy(); }
