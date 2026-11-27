@@ -1,32 +1,77 @@
 [
   [
+    "const MAX_STICKER_BYTES = 1_000_000;",
+    "const MAX_STICKER_BYTES = 980_000;",
+    1
+  ],
+  [
+    "const MAX_AUDIO_BYTES = 1_000_000;",
+    "const MAX_AUDIO_BYTES = 980_000;",
+    1
+  ],
+  [
     "const SIDES = [512, 448, 384, 320, 256, 224, 192, 160, 128, 96, 64];",
-    "const SIDES = [512];",
+    "const SIDES = [512, 448, 384, 320, 256];",
     1
   ],
   [
     "const FPS_LIST = [30, 25, 20, 15, 12, 10, 8, 6, 5];",
-    "const FPS_LIST = [30, 1];",
+    "const FPS_LIST = [20, 15, 12, 10, 8, 6, 5, 4, 3];",
+    1
+  ],
+  [
+    "const Q_MIN = 0.15;",
+    "const Q_MIN = 0.35;",
+    1
+  ],
+  [
+    "const Q_BY_SIDE = { 512: 0.75, 448: 0.7, 384: 0.65, 320: 0.6, 256: 0.55, 224: 0.55, 192: 0.5, 160: 0.5, 128: 0.45, 96: 0.45, 64: 0.4 };",
+    "const Q_BY_SIDE = Object.fromEntries(SIDES.map(s => [s, 0.90]));",
+    1
+  ],
+  [
+    "return (FPS_SCORE[fps] || 0) + (40 * side) / 512 - (side < 192 ? (192 - side) / 3 : 0);",
+    "return side * 2 + Math.min(fps, 15) * 4 + (fps >= 8 ? 30 : 0);",
+    1
+  ],
+  [
+    "return dur <= 10 ? 30 : dur <= 20 ? 25 : dur <= 40 ? 20 : dur <= 80 ? 15 : 12;",
+    "return dur <= 10 ? 20 : dur <= 20 ? 15 : dur <= 40 ? 10 : dur <= 80 ? 6 : 3;",
+    1
+  ],
+  [
+    "const auto = pick(\"ok\") || pick(\"baja\") || null;",
+    "const auto = cells.filter(c => c.estado === \"ok\" || c.estado === \"baja\").sort((a,b) => (b.score + (b.estado === \"ok\" ? 48 : 0)) - (a.score + (a.estado === \"ok\" ? 48 : 0)))[0] || null;",
+    1
+  ],
+  [
+    "async function encodeWebp(an, side, fps, exifMeta, { onProgress, signal, syncMs = 0, still = false }) {",
+    "async function encodeWebpCandidate(an, side, fps, exifMeta, { onProgress, signal, syncMs = 0, still = false }) {",
+    1
+  ],
+  [
+    "throw new Error(`Exceeds 1 MB even at minimum quality (${Math.round(best.bytes.length / 1000)} KB). Choose lower fps or resolution.`);",
+    "const err = new Error(\"Kandidat melebihi 980 KB.\"); err.code = \"VAN_SIZE_LIMIT\"; throw err;",
+    1
+  ],
+  [
+    "if (best && an.sampleBytes && i < qList.length - 1) {",
+    "if (false && best && an.sampleBytes && i < qList.length - 1) {",
     1
   ],
   [
     "const bitrate = Math.max(12000, Math.min(32000, Math.floor((0.9 * MAX_AUDIO_BYTES * 8) / A.dur)));",
-    "const bitrate = 64000;",
-    1
-  ],
-  [
-    "if ((bitrate / 8) * A.dur > 0.97 * MAX_AUDIO_BYTES) throw new Error(`At ${Math.round(A.dur)} s the audio exceeds 1 MB (WhatsApp limit). Max is about ${Math.floor((0.9 * MAX_AUDIO_BYTES * 8) / 12000 / 60)} minutes.`);",
-    "",
+    "const bitrate = Math.max(12000, Math.min(64000, Math.floor((0.85 * MAX_AUDIO_BYTES * 8) / A.dur)));",
     1
   ],
   [
     "if (ogg.length > MAX_AUDIO_BYTES) throw new Error(`Audio is ${Math.round(ogg.length / 1000)} KB (max 1000 KB)`);",
-    "if (ogg.length > MAX_AUDIO_BYTES) log(\"warn\", \"audio:oversize\", {bytes: ogg.length});",
+    "if (ogg.length > MAX_AUDIO_BYTES) throw new Error(`Audio ${Math.round(ogg.length / 1000)} KB melebihi 980 KB. Potong durasi audio.`);",
     1
   ],
   [
-    "if (!c) throw new Error(\"No combination fits under 1 MB for this clip\");",
-    "if (!c) throw new Error(\"Pilihan HD tidak tersedia.\");",
+    "return new Blob([concat([riff, body])], { type: \"image/webp\" });",
+    "const retagged = new Blob([concat([riff, body])], { type: \"image/webp\" }); if (retagged.size > MAX_STICKER_BYTES) throw new Error(\"Metadata membuat stiker melebihi 980 KB. Buat ulang stiker.\"); return retagged;",
     1
   ]
 ]

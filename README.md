@@ -1,4 +1,4 @@
-# VAN Stiker Sound — V4.8 — HD Fixed Quality
+# VAN Stiker Sound — V4.9 — Sharp Quality / Size Limit
 
 Aplikasi Android eksperimen, bukan aplikasi resmi WhatsApp/Meta. Untuk penggunaan pribadi/nonkomersial. Tidak ada backend aplikasi. Editor memakai engine WA-audio-stickers upstream yang diambil pada tahap build; tidak mengunduh executable JavaScript saat APK dijalankan.
 
@@ -82,3 +82,10 @@ Output kotak hingga 512 px; engine dapat menurunkan resolusi/FPS sesuai batas uk
 - MP4 kompatibilitas H.264/AAC tanpa resize, branding, crop, zoom, teks dan Van Installer tetap.
 - Upload semua file V4.8 terutama tools/fetch_engine.py dan tools/patches/high-quality.js, quality-rules.json, ui-rules.json. Workflow tidak berubah.
 - Sintaks patch lokal diperiksa; patch terhadap upstream akan divalidasi di GitHub Actions. Build Android dan uji WhatsApp belum dilakukan.
+
+## V4.9 — Sharp Quality / Size Limit (current)
+- Replaces V4.8 unlimited renderer. WebP and OGG separately capped at 980,000 bytes (engine reports 1,000,000 byte limit per medium). This is not an official sound-sticker specification or guarantee of acceptance.
+- Sharpness-first scoring, 256–512 px, adaptive FPS 3–20, WebP quality starts at 90 and may fall to 35. Trimming is required if no candidate meets the cap; no 96 px fallback. Audio up to 64 kbps mono.
+- Actual encoded size checked, including metadata changes, and checked again before sending. No automatic duration trimming or MP4 source resizing.
+- Full project update: upload all files including tools/patches/bounded-quality.js, quality-rules.json, upload-rules.json, ui-rules.json and fetch_engine.py. Workflow and Van Installer.apk unchanged. The old high-quality.js may remain in GitHub but is no longer read.
+- Local syntax and simulated fallback tests only; upstream patch/build and real WhatsApp delivery must be tested in GitHub/Android.

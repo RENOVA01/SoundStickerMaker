@@ -23,7 +23,7 @@
   ],
   [
     "if (grid) body.push(h(\"div\", { class: \"row\" }, calcBtn, calcInfo)",
-    "body.push(square.el); body.push(h(\"div\", { class: \"summary\" }, \"HD tetap: 512 × 512 • kualitas 100 • 30 FPS untuk animasi. Tidak ada kompresi berdasarkan ukuran. WhatsApp mungkin menolak file besar.\")); if (false) body.push(h(\"div\", { class: \"row\" }, calcBtn, calcInfo)",
+    "body.push(square.el); body.push(h(\"div\", { class: \"summary\" }, \"Prioritas tajam: 256\u2013512 px, FPS adaptif, maksimal 980 KB per file. Potong durasi jika tidak muat.\")); if (grid) body.push(h(\"div\", { class: \"row\" }, calcBtn, calcInfo)",
     1
   ],
   [
@@ -58,12 +58,12 @@
   ],
   [
     "if (grid) return { an: f.an, side: f.sel.side, fps: f.sel.fps, audio: p.audio, temp: false };",
-    "if (f.an) { WAAS.release(f.an); f.an = null; }",
+    "if (grid && fresh() && f.sel) return { an: f.an, side: f.sel.side, fps: f.sel.fps, audio: p.audio, temp: false };\n          if (f.an) { WAAS.release(f.an); f.an = null; }",
     1
   ],
   [
     "return { an, side: an.auto.side, fps: an.auto.fps, audio: p.audio, temp: true };",
-    "return { an, side: an.auto.side, fps: an.auto.fps, audio: p.audio, temp: true };",
+    "if (!an.auto) { WAAS.release(an); throw new Error(\"Tidak ada opsi 256\u2013512 px yang diperkirakan muat dalam 980 KB. Potong durasi.\"); } return { an, side: an.auto.side, fps: an.auto.fps, audio: p.audio, temp: true };",
     1
   ],
   [
@@ -83,12 +83,7 @@
   ],
   [
     "setStatus(\"Sticker ready. Check the preview and send it.\", 1);",
-    "setStatus((res.webp.size > WAAS.limits.MAX_STICKER_BYTES || res.ogg.size > WAAS.limits.MAX_AUDIO_BYTES) ? \"HD siap. File di atas 1 MB; WhatsApp mungkin menolak pengiriman. Kualitas tidak diturunkan.\" : \"Stiker HD siap. Cek preview dan kirim.\", 1);",
-    1
-  ],
-  [
-    "setStatus(\"Send error: \" + e.message, 0, true);",
-    "setStatus(\"Gagal kirim: \" + e.message + ((c.result && (c.result.webp.size > WAAS.limits.MAX_STICKER_BYTES || c.result.ogg.size > WAAS.limits.MAX_AUDIO_BYTES)) ? \" • File HD melebihi batas yang dilaporkan engine; kualitas tidak diturunkan otomatis.\" : \"\"), 0, true);",
+    "setStatus(\"Stiker siap. Ukuran WebP dan OGG masing-masing maksimal 980 KB. Cek preview dan kirim.\", 1);",
     1
   ]
 ]

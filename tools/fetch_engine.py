@@ -27,7 +27,7 @@ def apply_rules(text, path):
     return text
 
 def patch_engine(name, data):
-    if name not in ('convert.js', 'ui.js'):
+    if name not in ('convert.js', 'ui.js', 'wa.js'):
         return data
     text = data.decode('utf-8')
     patches = ROOT / 'tools/patches'
@@ -36,14 +36,12 @@ def patch_engine(name, data):
         b = text.index('  async function probeVideo(file)', a)
         text = text[:a] + (patches / 'draw.js').read_text(encoding='utf-8') + '\n' + text[b:]
         text = apply_rules(text, patches / 'video-rules.json')
-        # Remove old size-driven renderer and analyzer, install fixed-quality pipeline.
-        a = text.index('  async function encodeWebp(')
-        b = text.index('  function sampleAvg(', a)
-        text = text[:a] + text[b:]
-        a = text.index('  async function analyze(')
-        b = text.index('  async function create(', a)
-        text = text[:a] + (patches / 'high-quality.js').read_text(encoding='utf-8') + '\n' + text[b:]
         text = apply_rules(text, patches / 'quality-rules.json')
+        marker = '  function sampleAvg('
+        if text.count(marker) != 1: raise RuntimeError('Missing encoder wrapper anchor')
+        text = text.replace(marker, (patches / 'bounded-quality.js').read_text(encoding='utf-8') + '\n' + marker)
+    elif name == 'wa.js':
+        text = apply_rules(text, patches / 'upload-rules.json')
     else:
         text = apply_rules(text, patches / 'ui-rules.json')
     return text.encode('utf-8')

@@ -6,8 +6,8 @@ android {
         applicationId 'id.soundstickermaker'
         minSdk 26
         targetSdk 34
-        versionCode 12
-        versionName '0.4.8-experimental'
+        versionCode 13
+        versionName '0.4.9-experimental'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

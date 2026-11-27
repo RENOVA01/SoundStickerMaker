@@ -1,0 +1,17 @@
+[
+  [
+    "W.publish = async function ({ webp, ogg, info }, { destino = \"propio\", abrirReenviar = true, onProgress } = {}) {",
+    "W.publish = async function ({ webp, ogg, info }, { destino = \"propio\", abrirReenviar = true, onProgress } = {}) {\n    if (!webp || !ogg || webp.size > 980000 || ogg.size > 980000) throw new Error(\"Ukuran file melebihi 980 KB. Buat ulang sebelum mengirim.\");",
+    1
+  ],
+  [
+    "W.sendSticker = async function (chat, webpBlob, info, stickerAudio) {",
+    "W.sendSticker = async function (chat, webpBlob, info, stickerAudio) {\n    if (!webpBlob || webpBlob.size > 980000) throw new Error(\"WebP melebihi 980 KB.\");",
+    1
+  ],
+  [
+    "W.uploadAudio = async function (oggBlob, seconds, chat) {",
+    "W.uploadAudio = async function (oggBlob, seconds, chat) {\n    if (!oggBlob || oggBlob.size > 980000) throw new Error(\"Audio melebihi 980 KB.\");",
+    1
+  ]
+]
