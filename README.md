@@ -1,4 +1,4 @@
-# Sound Sticker Maker — V4 — Mobile Square Editor
+# Sound Sticker Maker — V4.2 — Video Compatibility + Mobile Square Editor
 
 Aplikasi Android eksperimen, bukan aplikasi resmi WhatsApp/Meta. Untuk penggunaan pribadi/nonkomersial. Tidak ada backend aplikasi. Editor memakai engine WA-audio-stickers upstream yang diambil pada tahap build; tidak mengunduh executable JavaScript saat APK dijalankan.
 
@@ -39,3 +39,9 @@ Engine: Shirtep/WA-audio-stickers; fork Inggris/privacy-hardened vish-4-1/WA-aud
 Upload seluruh isi ZIP ke root repository. Jangan hanya mengganti MainActivity.java: V4 memakai assets/editor/mobile.js dan tools/patches/*.js + ui-rules.json. Periksa .github/workflows/build-apk.yml ikut masuk. Build otomatis setelah commit. Gunakan akun uji. Jika signature APK berbeda dari instalasi sebelumnya, Android mungkin meminta uninstall; tindakan itu menghapus sesi dan data aplikasi.
 
 Output kotak hingga 512 px; engine dapat menurunkan resolusi/FPS sesuai batas ukuran WhatsApp. Preview GIF mengikuti media yang tersedia. Audio tidak diubah oleh crop/text.
+
+## V4.2 — error video code 4 + batas stiker
+- Video yang dipilih dari editor diproses dulu oleh AndroidX Media3 Transformer menjadi MP4 H.264/AAC, lalu diberikan ke WebView melalui FileProvider privat. Tidak mengubah video asli. Ini bukan jaminan untuk codec yang tidak dapat dibaca decoder Android atau WebView yang tidak mendukung pemutaran MP4. Bila gagal, gunakan MP4 H.264/AAC standar dan perbarui WebView. Audio yang memang tidak ada tidak dibuat otomatis.
+- File MP4 perantara tidak dibatasi 1 MB. Batas 960 KB saat enkode dan 980 KB sebelum kirim berlaku untuk gabungan WebP + OGG akhir, bukan video sumber. Bila terlalu besar, kurangi kualitas/resolusi/FPS otomatis; potong durasi jika masih gagal.
+- Semua file perlu diunggah, termasuk app/build.gradle, AndroidManifest.xml, res/xml/normalized_paths.xml, tools/patches/*.json, *.js dan workflow.
+- Pengujian lokal: sintaks patch JS/Python dan struktur XML; kompilasi Android dan uji perangkat belum dilakukan.

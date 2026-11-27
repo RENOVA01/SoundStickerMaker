@@ -1,0 +1,64 @@
+[
+  [
+    "const MAX_STICKER_BYTES = 1_000_000;",
+    "const MAX_STICKER_BYTES = 1_000_000;\n  const SSM_TOTAL_BYTES = 980_000;\n  const SSM_RENDER_BYTES = 960_000;",
+    1
+  ],
+  [
+    "async function encodeWebp(an, side, fps, exifMeta, { onProgress, signal, syncMs = 0, still = false })",
+    "async function encodeWebp(an, side, fps, exifMeta, { onProgress, signal, syncMs = 0, still = false, byteLimit = MAX_STICKER_BYTES })",
+    1
+  ],
+  [
+    "best.bytes.length * ratio > MAX_STICKER_BYTES * 0.98",
+    "best.bytes.length * ratio > byteLimit * 0.98",
+    1
+  ],
+  [
+    "bytes.length <= MAX_STICKER_BYTES) break;",
+    "bytes.length <= byteLimit) break;",
+    1
+  ],
+  [
+    "best.bytes.length > MAX_STICKER_BYTES)",
+    "best.bytes.length > byteLimit)",
+    1
+  ],
+  [
+    "throw new Error(`Exceeds 1 MB even at minimum quality (${Math.round(best.bytes.length / 1000)} KB). Choose lower fps or resolution.`);",
+    "const error = new Error(\"Hasil visual melebihi anggaran ukuran.\"); error.code = \"SSM_SIZE\"; throw error;",
+    1
+  ],
+  [
+    "  async function create(an, { side, fps, syncMs = 0, still = false, audio = null, onProgress, signal, packName = \"\", publisher = \"\" }) {",
+    {
+      "prepend": "compression.js"
+    },
+    1
+  ],
+  [
+    "const bitrate = Math.max(12000, Math.min(32000, Math.floor((0.9 * MAX_AUDIO_BYTES * 8) / A.dur)));",
+    "let bitrate = Math.max(12000, Math.min(32000, Math.floor((0.40 * SSM_RENDER_BYTES * 8) / A.dur)));",
+    1
+  ],
+  [
+    "if ((bitrate / 8) * A.dur > 0.97 * MAX_AUDIO_BYTES)",
+    "if ((bitrate / 8) * A.dur > 0.80 * SSM_RENDER_BYTES)",
+    1
+  ],
+  [
+    "const { packets, preSkip, config } = await encodeOpus(pcm, bitrate);\n    const ogg = buildOggOpus(packets, preSkip, pcm.length);\n    if (ogg.length > MAX_AUDIO_BYTES) throw new Error(`Audio is ${Math.round(ogg.length / 1000)} KB (max 1000 KB)`);",
+    "let packets, preSkip, config, ogg;\n    for (;;) {\n      checkAbort(signal);\n      ({packets, preSkip, config} = await encodeOpus(pcm, bitrate));\n      ogg = buildOggOpus(packets, preSkip, pcm.length);\n      if (ogg.length <= SSM_RENDER_BYTES - 32000) break;\n      if (bitrate <= 12000) throw new Error(\"Audio terlalu besar. Potong durasi klip lalu coba lagi.\");\n      bitrate = Math.max(12000, Math.floor(bitrate * 0.70));\n    }",
+    1
+  ],
+  [
+    "const w = await encodeWebp(an, side, fps, exifMeta, { onProgress: prog, signal, syncMs, still });",
+    "const w = await ssmEncodeUnderLimit(an, side, fps, exifMeta, { onProgress: prog, signal, syncMs, still }, SSM_RENDER_BYTES - ogg.length);\n    if (w.bytes.length + ogg.length > SSM_RENDER_BYTES) throw new Error(\"Ukuran total terlalu besar. Potong durasi klip.\");",
+    1
+  ],
+  [
+    "reject(new Error(\"The browser could not read the video\" + (e ? ` (code ${e.code}: ${e.message || \"unsupported format\"})` : \"\")));",
+    "reject(new Error(\"WebView tidak dapat membaca video. Coba MP4 H.264 + AAC lain dan perbarui Android System WebView/Chrome\" + (e ? ` (code ${e.code}: ${e.message || \"unsupported format\"})` : \"\")));",
+    1
+  ]
+]

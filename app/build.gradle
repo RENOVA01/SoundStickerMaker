@@ -6,8 +6,8 @@ android {
         applicationId 'id.soundstickermaker'
         minSdk 26
         targetSdk 34
-        versionCode 4
-        versionName '0.4-experimental'
+        versionCode 6
+        versionName '0.4.2-experimental'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -24,3 +24,10 @@ tasks.register('checkEngine') {
     }
 }
 tasks.named('preBuild').configure { dependsOn 'checkEngine' }
+
+// Native video normalization before WebView attempts playback.
+dependencies {
+    implementation 'androidx.media3:media3-transformer:1.5.1'
+    implementation 'androidx.media3:media3-effect:1.5.1'
+    implementation 'androidx.core:core:1.13.1'
+}

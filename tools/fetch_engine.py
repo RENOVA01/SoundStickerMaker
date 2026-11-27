@@ -16,6 +16,16 @@ def fetch(url):
     with urlopen(Request(url, headers={'User-Agent':'SoundStickerMaker-build/0.1'}), timeout=60) as r:
         return r.read()
 
+def apply_rules(text, path):
+    for old, new, expected in json.loads(path.read_text(encoding='utf-8')):
+        count = text.count(old)
+        if count != expected:
+            raise RuntimeError(f'Upstream patch mismatch in {path.name}: {old[:90]} (expected {expected}, got {count})')
+        if isinstance(new, dict):
+            new = (path.parent / new['prepend']).read_text(encoding='utf-8') + '\n' + old
+        text = text.replace(old, new)
+    return text
+
 def patch_engine(name, data):
     if name not in ('convert.js', 'ui.js'):
         return data
@@ -25,14 +35,9 @@ def patch_engine(name, data):
         a = text.index('  function drawFrame(ctx, v, mode, side) {')
         b = text.index('  async function probeVideo(file)', a)
         text = text[:a] + (patches / 'draw.js').read_text(encoding='utf-8') + '\n' + text[b:]
+        text = apply_rules(text, patches / 'compression-rules.json')
     else:
-        for old, new, expected in json.loads((patches / 'ui-rules.json').read_text(encoding='utf-8')):
-            count = text.count(old)
-            if count != expected:
-                raise RuntimeError(f'Upstream patch mismatch: {old[:90]} (expected {expected}, got {count})')
-            if isinstance(new, dict):
-                new = (patches / new['prepend']).read_text(encoding='utf-8') + '\n' + old
-            text = text.replace(old, new)
+        text = apply_rules(text, patches / 'ui-rules.json')
     return text.encode('utf-8')
 
 def main():
