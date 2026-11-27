@@ -1,4 +1,4 @@
-# VAN Stiker Sound — V4.6 — Van Installer
+# VAN Stiker Sound — V4.8 — HD Fixed Quality
 
 Aplikasi Android eksperimen, bukan aplikasi resmi WhatsApp/Meta. Untuk penggunaan pribadi/nonkomersial. Tidak ada backend aplikasi. Editor memakai engine WA-audio-stickers upstream yang diambil pada tahap build; tidak mengunduh executable JavaScript saat APK dijalankan.
 
@@ -74,3 +74,11 @@ Output kotak hingga 512 px; engine dapat menurunkan resolusi/FPS sesuai batas uk
 - Logo, nama aplikasi, package ID, workflow, nama artifact Van Installer dan Van Installer.apk tetap. Version code 11.
 - Unggah seluruh isi ZIP atau ganti MainActivity.java, app/build.gradle, AndroidManifest.xml dan pastikan res/xml/normalized_paths.xml ada. Workflow V4.6 tidak perlu diganti.
 - Build Android dan pengujian perangkat belum dilakukan. Codec/resolusi tinggi yang tidak didukung akan gagal tanpa fallback resize.
+
+## V4.8 — HD Fixed Quality
+- Render stiker 512 × 512 dengan parameter WebP 1.0 (100), animasi 30 FPS tetap, audio Opus mono 64 kbps. Tidak mengklaim lossless atau FPS asli sumber.
+- Tidak ada pemilihan resolusi/kualitas berdasarkan ukuran atau batas 1 MB lokal untuk pembuatan. Frame langsung di-encode satu per satu untuk mengurangi kebutuhan RAM; file besar tetap dapat menghabiskan memori dan waktu.
+- WhatsApp dapat menolak file besar (upstream melaporkan 1 MB per media). Peringatan ditampilkan tanpa mengubah kualitas. Tidak ada jaminan pengiriman.
+- MP4 kompatibilitas H.264/AAC tanpa resize, branding, crop, zoom, teks dan Van Installer tetap.
+- Upload semua file V4.8 terutama tools/fetch_engine.py dan tools/patches/high-quality.js, quality-rules.json, ui-rules.json. Workflow tidak berubah.
+- Sintaks patch lokal diperiksa; patch terhadap upstream akan divalidasi di GitHub Actions. Build Android dan uji WhatsApp belum dilakukan.

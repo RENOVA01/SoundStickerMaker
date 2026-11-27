@@ -36,6 +36,14 @@ def patch_engine(name, data):
         b = text.index('  async function probeVideo(file)', a)
         text = text[:a] + (patches / 'draw.js').read_text(encoding='utf-8') + '\n' + text[b:]
         text = apply_rules(text, patches / 'video-rules.json')
+        # Remove old size-driven renderer and analyzer, install fixed-quality pipeline.
+        a = text.index('  async function encodeWebp(')
+        b = text.index('  function sampleAvg(', a)
+        text = text[:a] + text[b:]
+        a = text.index('  async function analyze(')
+        b = text.index('  async function create(', a)
+        text = text[:a] + (patches / 'high-quality.js').read_text(encoding='utf-8') + '\n' + text[b:]
+        text = apply_rules(text, patches / 'quality-rules.json')
     else:
         text = apply_rules(text, patches / 'ui-rules.json')
     return text.encode('utf-8')
