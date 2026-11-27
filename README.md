@@ -65,3 +65,12 @@ Output kotak hingga 512 px; engine dapat menurunkan resolusi/FPS sesuai batas uk
 - Ikon launcher Pikachu dan nama aplikasi VAN Stiker Sound tetap digunakan. Android menentukan tampilan ikon pada file manager dan layar instalasi.
 - APK tetap build debug yang ditandatangani untuk pengujian; perubahan nama file tidak mengubah tipe build atau signature.
 - Tidak ada perubahan pada konversi video, editor atau engine dari V4.5. Version code 10.
+
+## V4.7 — MP4 tanpa resize
+- Mengaktifkan kembali Media3 Transformer 1.5.1 untuk video yang dipilih dalam editor stiker (MP4 H.264/AAC). Attachment biasa tidak diproses.
+- Menghapus Presentation.createForHeight(720) dan semua efek resize. Encoder fallback dinonaktifkan. Jika metadata sumber dapat dibaca, dimensi tampilan output diverifikasi termasuk rotasi; output yang berubah resolusinya ditolak. Jika metadata sumber tidak bisa dibaca, pemeriksaan perbandingan dimensi tidak tersedia.
+- Tidak ada target ukuran file atau bitrate rendah yang dipaksakan. Media3 dapat menyalin track kompatibel tanpa encoding ulang; codec lain membutuhkan encoding dan dapat mengubah bitrate/ukuran file maupun kualitas. File asli tidak diubah.
+- Output stiker WebP tetap memakai editor crop kotak hingga 512 px, serta batas format engine upstream.
+- Logo, nama aplikasi, package ID, workflow, nama artifact Van Installer dan Van Installer.apk tetap. Version code 11.
+- Unggah seluruh isi ZIP atau ganti MainActivity.java, app/build.gradle, AndroidManifest.xml dan pastikan res/xml/normalized_paths.xml ada. Workflow V4.6 tidak perlu diganti.
+- Build Android dan pengujian perangkat belum dilakukan. Codec/resolusi tinggi yang tidak didukung akan gagal tanpa fallback resize.
