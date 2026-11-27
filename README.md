@@ -1,4 +1,4 @@
-# Sound Sticker Maker — V4.3 — Video Compatibility + Mobile Square Editor
+# VAN Stiker Sound — V4.4 — Branding + Mobile Square Editor
 
 Aplikasi Android eksperimen, bukan aplikasi resmi WhatsApp/Meta. Untuk penggunaan pribadi/nonkomersial. Tidak ada backend aplikasi. Editor memakai engine WA-audio-stickers upstream yang diambil pada tahap build; tidak mengunduh executable JavaScript saat APK dijalankan.
 
@@ -46,3 +46,8 @@ Output kotak hingga 512 px; engine dapat menurunkan resolusi/FPS sesuai batas uk
 - Crop kotak, zoom, teks, audio, dan WhatsApp Web tetap tersedia. Opsi kualitas bersifat opsional jika engine menemukan pilihan otomatis yang valid.
 - Upgrade: unggah seluruh isi ZIP, terutama tools/fetch_engine.py dan tools/patches/video-rules.json serta ui-rules.json. File compression.js dan compression-rules.json lama tidak lagi dibaca dan boleh dihapus. Workflow tidak berubah.
 - Pengujian lokal: sintaks JS/Python serta struktur JSON/XML. Engine upstream akan diambil dan divalidasi saat build GitHub; kompilasi Android dan pengujian perangkat belum dilakukan.
+
+## V4.4 — Branding
+- Nama launcher dan judul aplikasi: VAN Stiker Sound. Ikon memakai gambar Pikachu yang diberikan pengguna, dipotong persegi tanpa perubahan gaya.
+- Application ID, workflow, engine, dan pengaturan video V4.3 tidak diubah. Version code 8.
+- Ikon dan XML diverifikasi; build APK belum dijalankan.

@@ -94,7 +94,7 @@ public class MainActivity extends Activity {
         LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(PAPER);
         LinearLayout header = new LinearLayout(this); header.setGravity(Gravity.CENTER_VERTICAL); header.setPadding(dp(14),0,dp(6),0);
         LinearLayout identity = new LinearLayout(this); identity.setOrientation(LinearLayout.VERTICAL);
-        TextView title = text("Sound Sticker", 19, INK, true); title.setIncludeFontPadding(false);
+        TextView title = text(getString(R.string.app_name), 19, INK, true); title.setIncludeFontPadding(false);
         TextView sub = text("WhatsApp Web", 11, MUTED, false); sub.setIncludeFontPadding(false);
         identity.addView(title); identity.addView(sub);
         header.addView(identity,new LinearLayout.LayoutParams(0,-2,1));
@@ -344,7 +344,7 @@ public class MainActivity extends Activity {
         web.evaluateJavascript("(function(){if(location.origin!=='https://web.whatsapp.com')return;window.WAAS.togglePanel();if(window.__ssmUI)window.__ssmUI.refresh();})()",null);
     }
     private void showInfo() {
-        new AlertDialog.Builder(this).setTitle("Sound Sticker Maker — Square Editor V4.3")
+        new AlertDialog.Builder(this).setTitle(getString(R.string.app_name) + " — V4.4")
             .setMessage("Prototipe nonresmi, untuk penggunaan pribadi/nonkomersial.\n\nTautkan akun melalui WhatsApp Web. Pilih video dengan audio, gambar + audio, atau GIF + audio. Editor diproses oleh engine WA-audio-stickers (Shirtep; fork vish-4-1, PolyForm Noncommercial).\n\nPengiriman tergantung kompatibilitas WhatsApp Web dan WebView. Jangan gunakan akun penting untuk uji coba. Tidak ada server aplikasi atau penyimpanan password.\n\nLisensi upstream disertakan di APK (assets/engine/LICENSE.md).")
             .setPositiveButton("OK",null).show();
     }
