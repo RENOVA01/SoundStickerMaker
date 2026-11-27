@@ -1,0 +1,54 @@
+[
+  [
+    "    function makeFormat({ getParams, grid = true, sync = true, still = false, extras = [] }) {",
+    {
+      "prepend": "controls.js"
+    },
+    1
+  ],
+  [
+    "const f = { mode: \"ajustar\", an: null, anKey: null, sel: null };",
+    "const f = { mode: \"recortar\", an: null, anKey: null, sel: null }; const square = makeSquareControls(() => f.mode, () => api.onUpdate(), getParams);",
+    1
+  ],
+  [
+    "...p, mode: f.mode, signal",
+    "...p, mode: square.config(), signal",
+    2
+  ],
+  [
+    "f.mode]);",
+    "square.config()]);",
+    1
+  ],
+  [
+    "if (grid) body.push(h(\"div\", { class: \"row\" }, calcBtn, calcInfo)",
+    "body.push(square.el); if (grid) body.push(h(\"div\", { class: \"row\" }, calcBtn, calcInfo)",
+    1
+  ],
+  [
+    "const has = !!getParams();",
+    "square.refresh(); const has = !!getParams();",
+    1
+  ],
+  [
+    "playSegBtn.addEventListener(\"click\", () => toggleRange(t.start, t.end));",
+    "media.ssmToggleClip = () => toggleRange(t.start, t.end); playSegBtn.addEventListener(\"click\", media.ssmToggleClip);",
+    1
+  ],
+  [
+    "sendBtn.disabled = G.busy || !c.result;",
+    "sendBtn.disabled = G.busy || !c.result || stale;",
+    1
+  ],
+  [
+    "textContent: \"Fit (transparent edges)\", class: \"on\"",
+    "textContent: \"Fit (transparan)\"",
+    1
+  ],
+  [
+    "textContent: \"Crop (fill frame)\"",
+    "textContent: \"Crop (kotak penuh)\", class: \"on\"",
+    1
+  ]
+]
