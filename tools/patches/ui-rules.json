@@ -63,7 +63,7 @@
   ],
   [
     "return { an, side: an.auto.side, fps: an.auto.fps, audio: p.audio, temp: true };",
-    "return { an, side: an.auto?.side, fps: an.auto?.fps, audio: p.audio, temp: true };",
+    "if (!an.auto) { WAAS.release(an); throw new Error(\"Tidak ada opsi kualitas yang sesuai dengan batas format engine. Pilih opsi kualitas atau potong durasi.\"); } return { an, side: an.auto.side, fps: an.auto.fps, audio: p.audio, temp: true };",
     1
   ],
   [
@@ -73,32 +73,12 @@
   ],
   [
     "textContent: \"Create sticker\"",
-    "textContent: \"Buat stiker < 1 MB\"",
+    "textContent: \"Buat stiker\"",
     1
   ],
   [
     " : \"Create sticker\";",
-    " : \"Buat stiker < 1 MB\";",
-    1
-  ],
-  [
-    "c.result = res;",
-    "if (res.webp.size + res.ogg.size > 980000) throw new Error(\"Ukuran total terlalu besar.\");\n          c.result = res;",
-    1
-  ],
-  [
-    "resInfo.textContent = `${durTxt}",
-    "resInfo.textContent = `Total ${fmtB(res.webp.size + res.ogg.size)} / 980 KB · ${durTxt}",
-    1
-  ],
-  [
-    "await WAAS.wa.publish(c.result, {",
-    "if (c.result.webp.size + c.result.ogg.size > 980000) throw new Error(\"Ukuran total terlalu besar. Buat ulang stiker.\");\n            await WAAS.wa.publish(c.result, {",
-    1
-  ],
-  [
-    "body.push(square.el); if (grid)",
-    "body.push(square.el, h(\"div\", {class:\"muted\"}, \"Kompresi otomatis: gambar + audio maksimal 980 KB. Langsung tekan Buat stiker; opsi kualitas tidak wajib.\")); if (grid)",
+    " : \"Buat stiker\";",
     1
   ]
 ]

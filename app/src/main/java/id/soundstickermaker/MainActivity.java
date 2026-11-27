@@ -344,7 +344,7 @@ public class MainActivity extends Activity {
         web.evaluateJavascript("(function(){if(location.origin!=='https://web.whatsapp.com')return;window.WAAS.togglePanel();if(window.__ssmUI)window.__ssmUI.refresh();})()",null);
     }
     private void showInfo() {
-        new AlertDialog.Builder(this).setTitle("Sound Sticker Maker — Square Editor V4.2")
+        new AlertDialog.Builder(this).setTitle("Sound Sticker Maker — Square Editor V4.3")
             .setMessage("Prototipe nonresmi, untuk penggunaan pribadi/nonkomersial.\n\nTautkan akun melalui WhatsApp Web. Pilih video dengan audio, gambar + audio, atau GIF + audio. Editor diproses oleh engine WA-audio-stickers (Shirtep; fork vish-4-1, PolyForm Noncommercial).\n\nPengiriman tergantung kompatibilitas WhatsApp Web dan WebView. Jangan gunakan akun penting untuk uji coba. Tidak ada server aplikasi atau penyimpanan password.\n\nLisensi upstream disertakan di APK (assets/engine/LICENSE.md).")
             .setPositiveButton("OK",null).show();
     }

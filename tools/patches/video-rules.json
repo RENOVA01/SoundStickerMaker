@@ -1,0 +1,7 @@
+[
+  [
+    "reject(new Error(\"The browser could not read the video\" + (e ? ` (code ${e.code}: ${e.message || \"unsupported format\"})` : \"\")));",
+    "reject(new Error(\"WebView tidak dapat membaca video. Coba MP4 H.264 + AAC lain dan perbarui Android System WebView/Chrome\" + (e ? ` (code ${e.code}: ${e.message || \"unsupported format\"})` : \"\")));",
+    1
+  ]
+]

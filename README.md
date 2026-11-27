@@ -1,4 +1,4 @@
-# Sound Sticker Maker — V4.2 — Video Compatibility + Mobile Square Editor
+# Sound Sticker Maker — V4.3 — Video Compatibility + Mobile Square Editor
 
 Aplikasi Android eksperimen, bukan aplikasi resmi WhatsApp/Meta. Untuk penggunaan pribadi/nonkomersial. Tidak ada backend aplikasi. Editor memakai engine WA-audio-stickers upstream yang diambil pada tahap build; tidak mengunduh executable JavaScript saat APK dijalankan.
 
@@ -40,8 +40,9 @@ Upload seluruh isi ZIP ke root repository. Jangan hanya mengganti MainActivity.j
 
 Output kotak hingga 512 px; engine dapat menurunkan resolusi/FPS sesuai batas ukuran WhatsApp. Preview GIF mengikuti media yang tersedia. Audio tidak diubah oleh crop/text.
 
-## V4.2 — error video code 4 + batas stiker
-- Video yang dipilih dari editor diproses dulu oleh AndroidX Media3 Transformer menjadi MP4 H.264/AAC, lalu diberikan ke WebView melalui FileProvider privat. Tidak mengubah video asli. Ini bukan jaminan untuk codec yang tidak dapat dibaca decoder Android atau WebView yang tidak mendukung pemutaran MP4. Bila gagal, gunakan MP4 H.264/AAC standar dan perbarui WebView. Audio yang memang tidak ada tidak dibuat otomatis.
-- File MP4 perantara tidak dibatasi 1 MB. Batas 960 KB saat enkode dan 980 KB sebelum kirim berlaku untuk gabungan WebP + OGG akhir, bukan video sumber. Bila terlalu besar, kurangi kualitas/resolusi/FPS otomatis; potong durasi jika masih gagal.
-- Semua file perlu diunggah, termasuk app/build.gradle, AndroidManifest.xml, res/xml/normalized_paths.xml, tools/patches/*.json, *.js dan workflow.
-- Pengujian lokal: sintaks patch JS/Python dan struktur XML; kompilasi Android dan uji perangkat belum dilakukan.
+## V4.3 — Video compatibility tanpa batas gabungan tambahan
+- Video pilihan tetap dinormalisasi dengan AndroidX Media3 Transformer menjadi MP4 H.264/AAC sebelum diberikan ke WebView. Dukungan codec bergantung perangkat; file asli tidak diubah.
+- Batas gabungan 980 KB dan kompresi ekstra dari V4.2 dihapus. MP4 perantara tidak memiliki target ukuran 1 MB. Engine upstream tetap memiliki batas masing-masing untuk WebP dan audio; aplikasi tidak menjamin WhatsApp menerima hasil yang melampaui batas engine atau layanan.
+- Crop kotak, zoom, teks, audio, dan WhatsApp Web tetap tersedia. Opsi kualitas bersifat opsional jika engine menemukan pilihan otomatis yang valid.
+- Upgrade: unggah seluruh isi ZIP, terutama tools/fetch_engine.py dan tools/patches/video-rules.json serta ui-rules.json. File compression.js dan compression-rules.json lama tidak lagi dibaca dan boleh dihapus. Workflow tidak berubah.
+- Pengujian lokal: sintaks JS/Python serta struktur JSON/XML. Engine upstream akan diambil dan divalidasi saat build GitHub; kompilasi Android dan pengujian perangkat belum dilakukan.

@@ -35,7 +35,7 @@ def patch_engine(name, data):
         a = text.index('  function drawFrame(ctx, v, mode, side) {')
         b = text.index('  async function probeVideo(file)', a)
         text = text[:a] + (patches / 'draw.js').read_text(encoding='utf-8') + '\n' + text[b:]
-        text = apply_rules(text, patches / 'compression-rules.json')
+        text = apply_rules(text, patches / 'video-rules.json')
     else:
         text = apply_rules(text, patches / 'ui-rules.json')
     return text.encode('utf-8')
