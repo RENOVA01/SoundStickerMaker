@@ -16,7 +16,7 @@
   ],
   [
     "const FPS_LIST = [30, 25, 20, 15, 12, 10, 8, 6, 5];",
-    "const FPS_LIST = [20, 15, 12, 10, 8, 6, 5, 4, 3];",
+    "const FPS_LIST = [30];",
     1
   ],
   [
@@ -31,12 +31,12 @@
   ],
   [
     "return (FPS_SCORE[fps] || 0) + (40 * side) / 512 - (side < 192 ? (192 - side) / 3 : 0);",
-    "return side * 2 + Math.min(fps, 15) * 4 + (fps >= 8 ? 30 : 0);",
+    "return side * 2;",
     1
   ],
   [
     "return dur <= 10 ? 30 : dur <= 20 ? 25 : dur <= 40 ? 20 : dur <= 80 ? 15 : 12;",
-    "return dur <= 10 ? 20 : dur <= 20 ? 15 : dur <= 40 ? 10 : dur <= 80 ? 6 : 3;",
+    "return 30;",
     1
   ],
   [
@@ -72,6 +72,21 @@
   [
     "return new Blob([concat([riff, body])], { type: \"image/webp\" });",
     "const retagged = new Blob([concat([riff, body])], { type: \"image/webp\" }); if (retagged.size > MAX_STICKER_BYTES) throw new Error(\"Metadata membuat stiker melebihi 980 KB. Buat ulang stiker.\"); return retagged;",
+    1
+  ],
+  [
+    "if (prev && prevF && (f === prevF || sameBytes(f.fp, prevF.fp))) { prev.durationMs += p[k].durationMs; continue; }",
+    "if (prev && prevF && f === prevF) { prev.durationMs += p[k].durationMs; continue; }",
+    1
+  ],
+  [
+    "if (!b || (a !== b && !sameBytes(a.fp, b.fp))) d++;",
+    "if (!b || a !== b) d++;",
+    1
+  ],
+  [
+    "if (!i || (frames[i] !== frames[i - 1] && !sameBytes(frames[i].fp, frames[i - 1].fp))) uniq.push(frames[i]);",
+    "if (!i || frames[i] !== frames[i - 1]) uniq.push(frames[i]);",
     1
   ]
 ]

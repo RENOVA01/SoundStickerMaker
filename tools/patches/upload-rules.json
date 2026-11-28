@@ -13,5 +13,17 @@
     "W.uploadAudio = async function (oggBlob, seconds, chat) {",
     "W.uploadAudio = async function (oggBlob, seconds, chat) {\n    if (!oggBlob || oggBlob.size > 980000) throw new Error(\"Audio melebihi 980 KB.\");",
     1
+  ],
+  [
+    "  // Flujo completo: subir audio, enviar al chat de destino y (opcional) abrir Reenviar.",
+    {
+      "prepend": "channel.js"
+    },
+    1
+  ],
+  [
+    "    if (chat.isReadOnly || chat.canSend === false) throw new Error(\"You cannot send messages in this chat\");",
+    "    if (isChannel(chat)) throw new Error(\"Gunakan Send to Channel untuk saluran WhatsApp.\");\n    if (chat.isReadOnly || chat.canSend === false) throw new Error(\"You cannot send messages in this chat\");",
+    1
   ]
 ]

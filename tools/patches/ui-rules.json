@@ -23,7 +23,7 @@
   ],
   [
     "if (grid) body.push(h(\"div\", { class: \"row\" }, calcBtn, calcInfo)",
-    "body.push(square.el); body.push(h(\"div\", { class: \"summary\" }, \"Prioritas tajam: 256\u2013512 px, FPS adaptif, maksimal 980 KB per file. Potong durasi jika tidak muat.\")); if (grid) body.push(h(\"div\", { class: \"row\" }, calcBtn, calcInfo)",
+    "body.push(square.el); body.push(h(\"div\", { class: \"summary\" }, \"Video/GIF: 30 FPS tetap, 256–512 px, maksimal 980 KB per file. Potong durasi jika tidak muat.\")); if (grid) body.push(h(\"div\", { class: \"row\" }, calcBtn, calcInfo)",
     1
   ],
   [
@@ -63,7 +63,7 @@
   ],
   [
     "return { an, side: an.auto.side, fps: an.auto.fps, audio: p.audio, temp: true };",
-    "if (!an.auto) { WAAS.release(an); throw new Error(\"Tidak ada opsi 256\u2013512 px yang diperkirakan muat dalam 980 KB. Potong durasi.\"); } return { an, side: an.auto.side, fps: an.auto.fps, audio: p.audio, temp: true };",
+    "if (!an.auto) { WAAS.release(an); throw new Error(\"Tidak ada opsi 256–512 px yang diperkirakan muat pada 30 FPS / 980 KB. Potong durasi; FPS tidak diturunkan.\"); } return { an, side: an.auto.side, fps: an.auto.fps, audio: p.audio, temp: true };",
     1
   ],
   [
@@ -84,6 +84,31 @@
   [
     "setStatus(\"Sticker ready. Check the preview and send it.\", 1);",
     "setStatus(\"Stiker siap. Ukuran WebP dan OGG masing-masing maksimal 980 KB. Cek preview dan kirim.\", 1);",
+    1
+  ],
+  [
+    "h(\"option\", { value: \"abierto-solo\", textContent: \"Send to open chat\" }),",
+    "h(\"option\", { value: \"abierto-solo\", textContent: \"Send to open chat\" }),\n        h(\"option\", { value: \"channel\", textContent: \"Send to Channel (experimental)\" }),",
+    1
+  ],
+  [
+    "      const sendBtn = h(\"button\", { class: \"act\", textContent: \"Send\" });",
+    "      const channelSelect = h(\"select\", {style:\"display:none;max-width:100%\"});\n      const channelHint = h(\"div\", {class:\"muted\",style:\"display:none\"});\n      const refreshChannels = h(\"button\", {class:\"sec\",textContent:\"Muat ulang saluran\",style:\"display:none\"});\n      function updateChannels() {\n        const show = destSel.value === \"channel\";\n        channelSelect.style.display = channelHint.style.display = refreshChannels.style.display = show ? \"\" : \"none\";\n        if (!show) return;\n        const prev = channelSelect.value;\n        channelSelect.replaceChildren(h(\"option\",{value:\"\",textContent:\"Pilih saluran admin/owner\"}));\n        try {\n          for (const ch of WAAS.wa.listChannels()) channelSelect.append(h(\"option\",{value:ch.id,textContent:ch.name+\" (\"+ch.role+\")\"}));\n          if (Array.from(channelSelect.options).some(o=>o.value===prev)) channelSelect.value=prev;\n          const d=WAAS.wa.channelDiagnostics();\n          channelHint.textContent = \"Fitur saluran: \"+String(d.enabled)+\" · saluran admin/owner: \"+String(d.writableChannels)+\". Pengiriman audio masih eksperimental.\";\n        } catch(e) {channelHint.textContent=e.message;}\n      }\n      destSel.addEventListener(\"change\",updateChannels);\n      refreshChannels.addEventListener(\"click\",updateChannels);\n      const sendBtn = h(\"button\", { class: \"act\", textContent: \"Send\" });",
+    1
+  ],
+  [
+    "h(\"div\", { class: \"row\", style: \"margin-top:10px\" }, destSel, sendBtn, dlBtn));",
+    "h(\"div\", { class: \"row\", style: \"margin-top:10px\" }, destSel, channelSelect, refreshChannels, channelHint, sendBtn, dlBtn));",
+    1
+  ],
+  [
+    "            await WAAS.wa.publish(c.result, {",
+    "            if (dest === \"channel\") {\n              if (!channelSelect.value) throw new Error(\"Pilih saluran terlebih dahulu.\");\n              await WAAS.wa.publishChannel(c.result, {channelId:channelSelect.value,onProgress:t=>setStatus(t)});\n              return;\n            }\n            await WAAS.wa.publish(c.result, {",
+    1
+  ],
+  [
+    "          setStatus(dest === \"abierto-solo\" ? \"Sent.\" : \"Sent. Choose which chats to forward it to in the dialog.\", 1);",
+    "          if (dest === \"channel\") {\n            setStatus(\"Server mengonfirmasi pengiriman. Cek apakah suara bisa diputar di saluran dari HP lain.\",1);\n            return;\n          }\n          setStatus(dest === \"abierto-solo\" ? \"Sent.\" : \"Sent. Choose which chats to forward it to in the dialog.\", 1);",
     1
   ]
 ]

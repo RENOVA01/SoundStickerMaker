@@ -1,4 +1,4 @@
-# VAN Stiker Sound — V4.9 — Sharp Quality / Size Limit
+# VAN Stiker Sound — V5.0 — Channel Experimental
 
 Aplikasi Android eksperimen, bukan aplikasi resmi WhatsApp/Meta. Untuk penggunaan pribadi/nonkomersial. Tidak ada backend aplikasi. Editor memakai engine WA-audio-stickers upstream yang diambil pada tahap build; tidak mengunduh executable JavaScript saat APK dijalankan.
 
@@ -83,9 +83,22 @@ Output kotak hingga 512 px; engine dapat menurunkan resolusi/FPS sesuai batas uk
 - Upload semua file V4.8 terutama tools/fetch_engine.py dan tools/patches/high-quality.js, quality-rules.json, ui-rules.json. Workflow tidak berubah.
 - Sintaks patch lokal diperiksa; patch terhadap upstream akan divalidasi di GitHub Actions. Build Android dan uji WhatsApp belum dilakukan.
 
-## V4.9 — Sharp Quality / Size Limit (current)
+## V4.9 — Sharp Quality / Size Limit
 - Replaces V4.8 unlimited renderer. WebP and OGG separately capped at 980,000 bytes (engine reports 1,000,000 byte limit per medium). This is not an official sound-sticker specification or guarantee of acceptance.
 - Sharpness-first scoring, 256–512 px, adaptive FPS 3–20, WebP quality starts at 90 and may fall to 35. Trimming is required if no candidate meets the cap; no 96 px fallback. Audio up to 64 kbps mono.
 - Actual encoded size checked, including metadata changes, and checked again before sending. No automatic duration trimming or MP4 source resizing.
 - Full project update: upload all files including tools/patches/bounded-quality.js, quality-rules.json, upload-rules.json, ui-rules.json and fetch_engine.py. Workflow and Van Installer.apk unchanged. The old high-quality.js may remain in GitHub but is no longer read.
 - Local syntax and simulated fallback tests only; upstream patch/build and real WhatsApp delivery must be tested in GitHub/Android.
+
+## V5.0 — Channel Experimental
+- Tambah Send to Channel (experimental), daftar saluran owner/admin yang sudah dimuat WhatsApp Web, dan diagnostik. Buka tab Updates/Saluran di WhatsApp Web jika daftar kosong, lalu muat ulang saluran di editor. Jika layout portrait menghalangi, gunakan mode desktop sementara.
+- Menggunakan upload WebP newsletter tanpa enkripsi (sesuai jalur media channel) dan sendNewsletterMessageJob. Audio masih memakai uploader stickerAudio yang sudah digunakan di chat; kompatibilitas format audio tersebut dengan saluran belum terverifikasi. Tidak mengubah feature flag saluran, tidak mencoba melewati izin admin, tidak meneruskan dari chat pribadi. Server ACK tidak membuktikan audio bisa diputar; periksa dari perangkat lain. Jika fitur tidak aktif, operasi dibatalkan.
+- Batas 980 KB per file, crop, zoom, teks, konversi MP4 tanpa resize, branding dan workflow V4.9 tetap.
+- Upgrade: unggah tools/patches/channel.js, upload-rules.json, ui-rules.json dan app/build.gradle, atau seluruh ZIP. Workflow tetap.
+- Pemeriksaan sintaks lokal; download upstream melalui Python gagal karena DNS di lingkungan pengembangan. GitHub Actions tetap melakukan patch dan validasi sintaks penuh. Belum diuji pada WhatsApp Web atau Android; gunakan akun dan saluran uji.
+
+## V5.1 — Locked 30 FPS
+- Video/GIF captured and encoded at fixed nominal 30 FPS; no fallback to a lower FPS. Identical frame references or identical encoded frame payloads can still be merged without changing timeline duration. Sources under 30 FPS do not gain new motion detail. Static images do not have a frame rate.
+- Same 980,000-byte cap separately for WebP and OGG, 256–512 px, quality 90 down to 35 if needed. If no option fits, trim manually; there is no automatic FPS reduction or duration trimming.
+- Channel route from V5.0 is experimental and remains unverified on actual WhatsApp. No feature flag override. APK/engine build has not been tested locally.
+- Upload all files, or replace tools/patches/quality-rules.json, bounded-quality.js, ui-rules.json, app/build.gradle and MainActivity.java if already on V5.0. Workflow and installer name unchanged.
